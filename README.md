@@ -1,5 +1,9 @@
 # PortaPy validation tools
 
+PortaPy is a way to enforce python source code that is (theoretically) portable from python 2.0 through current python 3.x. The idea is to enforce a lowest-common-denominator syntax. Additionally, a (currently very) small SDK with some helper functions can be used. (E.g. portapy_sdk.prnt() because of the breaking difference between print expression vs. print statement.)
+
+Enforcement is done by (1) running static checking tools, (2) running the target code through various python interpreter versions, care of Docker.
+
 This directory contains the portable-source checkers and the Docker runtime
 runner used to validate a separate target Python project. The target project
 is not copied into this repository. Provide its path explicitly when needed, or
