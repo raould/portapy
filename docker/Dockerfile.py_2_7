@@ -1,4 +1,4 @@
-# Python 2.7 behavioral-test image for the generic VM.
+# Python 2.7 behavioral-test image for the generic PortaPy.
 #
 # The base image is intentionally configurable because old Python images and
 # their package repositories may move or become unavailable over time.
@@ -6,7 +6,7 @@
 #
 #   docker build \
 #     --build-arg BASE_IMAGE=python:2.7-slim@sha256:<verified-digest> \
-#     --file VM/tests/docker/Dockerfile.py27 \
+#     --file PortaPy/tests/docker/Dockerfile.py27 \
 #     --tag shelldsl-vm-py27 .
 #
 # For local development, the default tag is convenient but should not be
@@ -19,10 +19,10 @@ FROM ${BASE_IMAGE}
 ENV PYTHONUNBUFFERED=1
 WORKDIR /workspace
 
-# Copy the VM sources and compatibility tests into the image. This keeps the
+# Copy the PortaPy sources and compatibility tests into the image. This keeps the
 # release-style image independent of the host working tree after build time.
-COPY VM /workspace/VM
+COPY PortaPy /workspace/PortaPy
 
 # The test runner must remain Python 2.0-compatible even though this image
 # executes it with Python 2.7.
-CMD ["python", "VM/tests/run_tests.py"]
+CMD ["python", "PortaPy/tests/run_tests.py"]

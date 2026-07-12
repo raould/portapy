@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the VM Python 3 test suite."""
+"""Run the PortaPy Python 3 test suite."""
 
 import os
 import sys

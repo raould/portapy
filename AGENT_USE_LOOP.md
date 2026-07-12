@@ -1,6 +1,6 @@
 # Portable Source Validation Loop
 
-When using this VM project to create portable Python code, source changes may
+When using this PortaPy project to create portable Python code, source changes may
 need several static and runtime iterations. Static checks are a preflight
 filter; interpreter execution is the final compatibility authority.
 
@@ -16,20 +16,19 @@ Before starting, explicitly identify the target files and record the baseline:
 Only target source files may be changed during a source-fix iteration. Changes
 to SDK shims require an intentional SDK contract decision. Checker and
 framework changes must not be made merely to suppress a target diagnostic.
-`VM0/` is out of scope unless explicitly requested.
 
-The VM tools resolve their support files from their own installation directory,
+The PortaPy tools resolve their support files from their own installation directory,
 so they can be invoked from any current working directory. Set a shell
-variable to the directory containing the `VM` folder:
+variable:
 
 ```sh
-SHELLSDK=/path/to/shelldsl
+PORTAPY=/path/to/portapy
 ```
 
 The current dispatcher is:
 
 ```text
-python3 "$SHELLSDK/VM/scripts/checkall.py" SOURCE...
+python3 "$PORTAPY/scripts/checkall.py" SOURCE...
 ```
 
 It accepts individual source paths. Enumerate files before invoking it when a
@@ -39,32 +38,32 @@ For a target project rooted at the current directory:
 
 ```sh
 find ./src -name '*.py' -print | xargs python3 \
-    "$SHELLSDK/VM/scripts/checkall.py"
+    "$PORTAPY/scripts/checkall.py"
 ```
 
 The Docker runtime wrapper is:
 
 ```text
-python3 "$SHELLSDK/VM/scripts/run_docker.py" --image IMAGE [OPTIONS] -- COMMAND...
+python3 "$PORTAPY/scripts/run_docker.py" --image IMAGE [OPTIONS] -- COMMAND...
 ```
 
 If `--project` is omitted, the current working directory is mounted. Use
 `--project PATH` to mount a different target project. The repository's Docker
-files and build context are still resolved from the VM installation, not from
+files and build context are still resolved from the PortaPy installation, not from
 the current directory.
 
 To build and run the same command against every Dockerfile-defined Python
 image, use:
 
 ```text
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --all \
     --read-only \
     --network-none \
-    -- python VM/test_runner.py
+    -- python PortaPy/test_runner.py
 ```
 
-`--all` discovers `VM/docker/Dockerfile.py*` in sorted order, builds a
+`--all` discovers `PortaPy/docker/Dockerfile.py*` in sorted order, builds a
 deterministically named image for each Dockerfile, and runs the command once
 in each image. Existing images are reused by default; use `--rebuild` to force
 reconstruction. Containers remain ephemeral because every run uses `--rm`,
@@ -85,11 +84,11 @@ target source and tests. When run from the target project directory, for
 example:
 
 ```text
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --image shelldsl-py-2-7 \
     --read-only \
     --network-none \
-    -- python VM/test_runner.py
+    -- python test_runner.py
 ```
 
 Use `--project PATH` to mount another project directory and `--workdir PATH`
@@ -188,7 +187,7 @@ include:
 
 - An assertion failure in the target's own tests.
 - A domain-specific output mismatch.
-- Incorrect business logic or VM behavior.
+- Incorrect business logic or PortaPy behavior.
 - A fixture, input, environment, or expected result that the target test
     intentionally controls.
 

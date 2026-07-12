@@ -1,4 +1,4 @@
-# VM validation tools
+# PortaPy validation tools
 
 This directory contains the portable-source checkers and the Docker runtime
 runner used to validate a separate target Python project. The target project
@@ -14,10 +14,10 @@ for ordinary local checker development.
 
 The tools resolve their own support files from their installation directory,
 so they can be invoked from any current working directory. The examples below
-use `SHELLSDK` for the directory containing the `VM` folder:
+use `PORTAPY` for the directory containing the `PortaPy` folder:
 
 ```text
-SHELLSDK=/path/to/shelldsl
+PORTAPY=/path/to/portapy
 ```
 
 The target project should have a directory containing its Python source and
@@ -38,7 +38,7 @@ before invoking it.
 From any directory on a POSIX host:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/checkall.py" \
+python3 "$PORTAPY/scripts/checkall.py" \
     /path/to/target-project/src/file_a.py \
     /path/to/target-project/src/file_b.py
 ```
@@ -46,7 +46,7 @@ python3 "$SHELLSDK/VM/scripts/checkall.py" \
 To check every Python file below a target source directory:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/checkall.py" \
+python3 "$PORTAPY/scripts/checkall.py" \
     $(find /path/to/target-project/src -type f -name '*.py' -print)
 ```
 
@@ -55,7 +55,7 @@ SDK is installed at `/home/user1/shellsdk/`:
 
 ```sh
 find ./src -name '*.py' -print | xargs python3 \
-    /home/user1/shellsdk/VM/scripts/checkall.py
+    /home/user1/shellsdk/PortaPy/scripts/checkall.py
 ```
 
 A clean run produces no diagnostics and exits `0`. A diagnostic, unreadable
@@ -73,7 +73,7 @@ current directory:
 
 ```sh
 cd /path/to/target-project
-python3 "$SHELLSDK/VM/scripts/checkall.py" \
+python3 "$PORTAPY/scripts/checkall.py" \
     $(find ./src -type f -name '*.py' -print)
 ```
 
@@ -89,7 +89,7 @@ project supplies the source and tests.
 Run one already-built image:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --image shelldsl-py-3-14 \
     --project /path/to/target-project \
     --read-only \
@@ -103,7 +103,7 @@ into a shell command. The container working directory defaults to
 Use the target project's own test command when it differs from unittest:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --image shelldsl-py-3-14 \
     --project /path/to/target-project \
     -- python test_runner.py
@@ -113,7 +113,7 @@ Use `--workdir` when the target project expects another path inside the
 container:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --image shelldsl-py-3-14 \
     --project /path/to/target-project \
     --workdir /workspace/project \
@@ -129,7 +129,7 @@ makes it possible to run validation while standing in the target project:
 
 ```sh
 cd /path/to/target-project
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --image shelldsl-py-3-14 \
     --read-only \
     --network-none \
@@ -138,12 +138,12 @@ python3 "$SHELLSDK/VM/scripts/run_docker.py" \
 
 ### Run every configured Docker image
 
-The `--all` mode discovers every `VM/docker/Dockerfile.py*`, builds a missing
+The `--all` mode discovers every `PortaPy/docker/Dockerfile.py*`, builds a missing
 image, reuses an existing image, and runs the same target command once in each
 image:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --all \
     --project /path/to/target-project \
     --read-only \
@@ -161,7 +161,7 @@ Dockerfile.py_3_14 -> shelldsl-py-3-14
 Use `--rebuild` when a Dockerfile or its base image should be rebuilt:
 
 ```sh
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --all \
     --rebuild \
     --project /path/to/target-project \
@@ -180,10 +180,10 @@ For a target project, run static and runtime validation separately:
 ```sh
 TARGET=/path/to/target-project
 
-python3 "$SHELLSDK/VM/scripts/checkall.py" \
+python3 "$PORTAPY/scripts/checkall.py" \
     $(find "$TARGET/src" -type f -name '*.py' -print)
 
-python3 "$SHELLSDK/VM/scripts/run_docker.py" \
+python3 "$PORTAPY/scripts/run_docker.py" \
     --all \
     --project "$TARGET" \
     --read-only \

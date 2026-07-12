@@ -1,4 +1,4 @@
-"""Small Python 2.0-compatible SDK shims for portable VM programs."""
+"""Small Python 2.0-compatible SDK shims for portable PortaPy programs."""
 
 import sys
 

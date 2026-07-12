@@ -1,6 +1,6 @@
 # Portable Python Core Syntax
 
-This document defines a restricted Python source subset for the VM project.
+This document defines a restricted Python source subset for the PortaPy project.
 
 The target is Python 2.0-compatible source syntax and behavior, while also supporting execution on later Python 2 and Python 3 interpreters.
 
@@ -48,15 +48,15 @@ The shared portable source may use:
 - `%` string formatting.
 - Stable built-ins whose behavior is tested on the target interpreters.
 - Explicit calls to `sys.stdout.write()` and `sys.stderr.write()`.
-- The small SDK shims `shelldsl_sdk.prnt()`, `shelldsl_sdk.write()`,
-    `shelldsl_sdk.prntlog()`, `shelldsl_sdk.int_div()`, and
-    `shelldsl_sdk.exception_value()`.
+- The small SDK shims `portapy_sdk.prnt()`, `portapy_sdk.write()`,
+    `portapy_sdk.prntlog()`, `portapy_sdk.int_div()`, and
+    `portapy_sdk.exception_value()`.
 
 ## Portable diagnostic logging
 
 Python 2.0 has no dependable standard logging package shared with later
 Python versions. Portable diagnostics therefore use the SDK's
-`shelldsl_sdk.prntlog(level, message)`, which writes to stderr using only
+`portapy_sdk.prntlog(level, message)`, which writes to stderr using only
 `sys.stderr.write()` and `%` formatting.
 
 The SDK exposes `VERBOSE`, `DEBUG`, `WARN`, and `ERROR` levels. Output is enabled when
@@ -64,8 +64,8 @@ the message level is at least as important as the effective threshold. The
 effective threshold is the more verbose of these two configured thresholds:
 
 1. The `PRNTLOGLEVEL` environment variable.
-2. The programmatic `shelldsl_sdk.set_prntlog_level(level)` setting, backed by
-     the `shelldsl_sdk.PRNTLOG_LEVEL` global.
+2. The programmatic `portapy_sdk.set_prntlog_level(level)` setting, backed by
+     the `portapy_sdk.PRNTLOG_LEVEL` global.
 
 `VERBOSE` is the louder setting: if either source selects `VERBOSE`, verbose
 messages are enabled even when the other source is unset or selects `DEBUG`,
@@ -81,7 +81,7 @@ all diagnostic output goes to stderr.
 Example:
 
 ```python
-from shelldsl_sdk import ERROR, VERBOSE, prntlog, set_prntlog_level
+from portapy_sdk import ERROR, VERBOSE, prntlog, set_prntlog_level
 
 set_prntlog_level(VERBOSE)
 prntlog(VERBOSE, "starting operation")
@@ -271,7 +271,7 @@ The portable core distinguishes semantic text from raw bytes:
 
 The core must not use arbitrary `str(value)` as a universal serialization mechanism.
 
-Use ASCII-safe literals for VM diagnostics and control messages unless an explicit encoding policy is present.
+Use ASCII-safe literals for PortaPy diagnostics and control messages unless an explicit encoding policy is present.
 
 The only interpolation style for the MVP is `%` formatting:
 
@@ -304,7 +304,7 @@ value = 100000000000000000000L
 
 Use unsuffixed integer literals or explicit operations, and test large-integer behavior on every supported interpreter.
 
-Use integer `0` and `1` for portable boolean values when the value crosses the VM or library boundary. Do not require `True` or `False` as language-level constants.
+Use integer `0` and `1` for portable boolean values when the value crosses the PortaPy or library boundary. Do not require `True` or `False` as language-level constants.
 
 ## Built-ins and standard library
 
@@ -442,7 +442,7 @@ contract that the current `checkall.py` command does not yet provide.
 
 ## Static typing during development
 
-The primary purpose of static types is to find bugs while developing the VM and portable libraries. Downstream typed APIs are a secondary benefit.
+The primary purpose of static types is to find bugs while developing the PortaPy and portable libraries. Downstream typed APIs are a secondary benefit.
 
 Because Python 2.0 cannot parse Python 3 annotation syntax, use type comments in shared source:
 
@@ -521,4 +521,4 @@ The portable Python core is a deliberately restricted Python 2.0 source subset:
 - Explicit text/bytes handling.
 - Explicit true division.
 - Stable built-ins and verified standard-library modules only.
-- VM instructions used when stricter execution or persistence is required.
+- PortaPy instructions used when stricter execution or persistence is required.

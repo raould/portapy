@@ -21,7 +21,7 @@ def build_parser():
     parser.add_argument(
         "--all",
         action="store_true",
-        help="Build and run every VM/docker/Dockerfile.py* image",
+        help="Build and run every PortaPy/docker/Dockerfile.py* image",
     )
     parser.add_argument(
         "--rebuild",
@@ -68,7 +68,7 @@ def repository_root():
 
 def dockerfiles():
     root = repository_root()
-    pattern = os.path.join(root, "VM", "docker", "Dockerfile.py*")
+    pattern = os.path.join(root, "PortaPy", "docker", "Dockerfile.py*")
     return sorted(glob.glob(pattern))
 
 
@@ -126,7 +126,7 @@ def run(options):
     if options.all:
         files = dockerfiles()
         if not files:
-            sys.stderr.write("error: no VM/docker/Dockerfile.py* files found\n")
+            sys.stderr.write("error: no PortaPy/docker/Dockerfile.py* files found\n")
             return 2
         result = 0
         for dockerfile in files:

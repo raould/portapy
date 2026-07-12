@@ -85,7 +85,7 @@ prints every diagnostic. Its process exit status is:
 For example, a clean invocation produces no diagnostic output and exits `0`:
 
 ```text
-$ python3 VM/scripts/checkall.py VM/test/sdk_output_pass.py
+$ python3 PortaPy/scripts/checkall.py PortaPy/test/sdk_output_pass.py
 $ echo $?
 0
 ```
@@ -93,8 +93,8 @@ $ echo $?
 A violating invocation prints diagnostics and exits `1`:
 
 ```text
-$ python3 VM/scripts/checkall.py VM/test/print_fail.py
-VM/test/print_fail.py:2:5: [6d0d587] [ERROR] disallowed: 'print'. alternatives: prnt,sys.stdout.write
+$ python3 PortaPy/scripts/checkall.py PortaPy/test/print_fail.py
+PortaPy/test/print_fail.py:2:5: [6d0d587] [ERROR] disallowed: 'print'. alternatives: prnt,sys.stdout.write
 $ echo $?
 1
 ```
@@ -108,8 +108,8 @@ are not currently returned or printed by the implemented checkers.
 The current MVP tool is the standalone Python 3 dispatcher:
 
 ```text
-python3 VM/scripts/checkall.py VM/test/minimal.py
-python3 VM/scripts/checkall.py VM0/src
+python3 PortaPy/scripts/checkall.py PortaPy/test/minimal.py
+python3 PortaPy/scripts/checkall.py VM0/src
 ```
 
 It accepts individual file paths and does not execute the inspected source.
@@ -118,7 +118,7 @@ orchestration are not implemented by the current dispatcher.
 
 ### Programmatic source API
 
-Each checker package under `VM/src/checkers/` must expose a source-text API in
+Each checker package under `PortaPy/src/checkers/` must expose a source-text API in
 addition to the dispatcher command-line interface. The API analyzes text
 without importing, compiling for execution, or running the inspected program.
 
@@ -158,8 +158,8 @@ The command-line interface should support both paths and standard input:
 The dispatcher accepts one or more source paths:
 
 ```text
-python3 VM/scripts/checkall.py path/to/program.py
-python3 VM/scripts/checkall.py first.py second.py
+python3 PortaPy/scripts/checkall.py path/to/program.py
+python3 PortaPy/scripts/checkall.py first.py second.py
 ```
 
 The command-line dispatcher and programmatic checker APIs produce equivalent
@@ -187,7 +187,7 @@ when every checked file returns an empty diagnostic list.
 
 ## Implemented checker behavior
 
-The dispatcher discovers packages below `VM/src/checkers/` with
+The dispatcher discovers packages below `PortaPy/src/checkers/` with
 `pkgutil.iter_modules()`. A package is a checker when it exposes
 `check_source(source, filename)`. Packages whose names begin with `_` are
 ignored. Each checker returns a list of diagnostic dictionaries; returning
@@ -265,7 +265,7 @@ characters are used as the rule ID:
 - `37df0c7`: True or False constant.
 - `e9a50a5`: super() call.
 
-The MVP SDK provides `shelldsl_sdk.prnt()` as a deliberately small output
+The MVP SDK provides `portapy_sdk.prnt()` as a deliberately small output
 shim. It accepts positional values, separates them with one space, and adds
 one newline. It does not attempt to emulate Python 3's `print()` keyword
 arguments or every conversion rule. The name is intentionally distinct from
@@ -331,7 +331,7 @@ The only new MVP helpers are therefore `int_div()` and
 
 The twenty additional rule-based checkers, plus these five source-level
 coverage checkers, are now implemented. Each has its own package under
-`VM/src/checkers/`, exposes `check_source(source, filename)`, and is discovered
+`PortaPy/src/checkers/`, exposes `check_source(source, filename)`, and is discovered
 automatically by `checkall.py`. AST-based rules return `[]`
 when Python 3 cannot parse the source; token-based rules report findings that
 remain available before tokenization fails.
@@ -527,7 +527,7 @@ matrix pass
 
 Before Docker execution, run fast tests with the current development interpreter. These tests should validate:
 
-- VM instruction behavior.
+- PortaPy instruction behavior.
 - Source-policy fixtures.
 - Expected diagnostics.
 - Test-vector normalization.
@@ -624,7 +624,7 @@ ERROR=
 
 Normalize:
 
-- Exception results to VM error class names.
+- Exception results to PortaPy error class names.
 - Text and bytes using explicit tags.
 - Numeric values according to the documented numeric policy.
 - Dictionaries in deterministic key order for comparison.
