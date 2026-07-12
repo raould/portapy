@@ -60,7 +60,7 @@ class DockerRunnerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             run_docker.docker_arguments(self.options(command=[]))
 
-    def test_discovers_vm_dockerfiles(self):
+    def test_discovers_portapy_dockerfiles(self):
         files = run_docker.dockerfiles()
         self.assertTrue(files)
         for filename in files:

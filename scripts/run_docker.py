@@ -63,12 +63,12 @@ def build_parser():
 
 def repository_root():
     scripts = os.path.dirname(os.path.abspath(__file__))
-    return os.path.dirname(os.path.dirname(scripts))
+    return os.path.dirname(scripts)
 
 
 def dockerfiles():
     root = repository_root()
-    pattern = os.path.join(root, "PortaPy", "docker", "Dockerfile.py*")
+    pattern = os.path.join(root, "docker", "Dockerfile.py*")
     return sorted(glob.glob(pattern))
 
 

@@ -5,8 +5,8 @@ import sys
 import unittest
 
 
-VM_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-SCRIPT_DIR = os.path.join(VM_DIR, "scripts")
+PORTAPY_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+SCRIPT_DIR = os.path.join(PORTAPY_DIR, "scripts")
 if SCRIPT_DIR not in sys.path:
     sys.path.insert(0, SCRIPT_DIR)
 
