@@ -74,7 +74,7 @@ def dockerfiles():
 
 def image_name(dockerfile):
     name = os.path.basename(dockerfile)
-    return "shelldsl-%s" % name.replace("Dockerfile.", "").replace("_", "-")
+    return "portapy-%s" % name.replace("Dockerfile.", "").replace("_", "-")
 
 
 def docker_arguments(options):

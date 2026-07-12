@@ -68,12 +68,12 @@ class DockerRunnerTests(unittest.TestCase):
     def test_generates_stable_image_name(self):
         self.assertEqual(
             run_docker.image_name("/tmp/Dockerfile.py_2_7"),
-            "shelldsl-py-2-7",
+            "portapy-py-2-7",
         )
 
     def test_build_arguments_use_repository_as_context(self):
         command = run_docker.build_arguments(
-            "/tmp/Dockerfile.py_2_7", "shelldsl-py-2-7"
+            "/tmp/Dockerfile.py_2_7", "portapy-py-2-7"
         )
         self.assertEqual(command[:2], ["docker", "build"])
         self.assertEqual(command[-1], run_docker.repository_root())
@@ -112,12 +112,12 @@ class DockerRunnerTests(unittest.TestCase):
 
         run_docker.subprocess.call = fake_call
         try:
-            self.assertTrue(run_docker.image_exists("shelldsl-py-3-14"))
+            self.assertTrue(run_docker.image_exists("portapy-py-3-14"))
         finally:
             run_docker.subprocess.call = original_call
         self.assertEqual(
             calls,
-            [["docker", "image", "inspect", "shelldsl-py-3-14"]],
+            [["docker", "image", "inspect", "portapy-py-3-14"]],
         )
 
 

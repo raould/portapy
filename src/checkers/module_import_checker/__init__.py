@@ -7,7 +7,7 @@ RULE = add_rule(Severity.ERROR, "unsupported module import", ["portable allowlis
 ALLOWLIST = set((
     "sys", "os", "string", "time", "math", "vm_sdk",
     "shlex", "shutil", "subprocess", "csv", "io", "json",
-    "shelldsl", "core", "errors", "result",
+    "portapy", "core", "errors", "result",
 ))
 def check_source(source: str, filename: str = "<string>") -> List[Diagnostic]:
     tree = parse(source)

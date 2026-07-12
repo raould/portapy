@@ -50,12 +50,11 @@ python3 "$PORTAPY/scripts/checkall.py" \
     $(find /path/to/target-project/src -type f -name '*.py' -print)
 ```
 
-For example, when the current directory is `/home/user1/Foobar/` and the
-SDK is installed at `/home/user1/shellsdk/`:
+For example, when the current directory is `/home/user1/Foobar/` and portapy is installed at `/home/user1/portapy/`:
 
 ```sh
 find ./src -name '*.py' -print | xargs python3 \
-    /home/user1/shellsdk/PortaPy/scripts/checkall.py
+    /home/user1/portapy/scripts/checkall.py
 ```
 
 A clean run produces no diagnostics and exits `0`. A diagnostic, unreadable
@@ -90,7 +89,7 @@ Run one already-built image:
 
 ```sh
 python3 "$PORTAPY/scripts/run_docker.py" \
-    --image shelldsl-py-3-14 \
+    --image portapy-py-3-14 \
     --project /path/to/target-project \
     --read-only \
     --network-none \
@@ -104,7 +103,7 @@ Use the target project's own test command when it differs from unittest:
 
 ```sh
 python3 "$PORTAPY/scripts/run_docker.py" \
-    --image shelldsl-py-3-14 \
+    --image portapy-py-3-14 \
     --project /path/to/target-project \
     -- python test_runner.py
 ```
@@ -114,7 +113,7 @@ container:
 
 ```sh
 python3 "$PORTAPY/scripts/run_docker.py" \
-    --image shelldsl-py-3-14 \
+    --image portapy-py-3-14 \
     --project /path/to/target-project \
     --workdir /workspace/project \
     -- python -m unittest discover
@@ -130,7 +129,7 @@ makes it possible to run validation while standing in the target project:
 ```sh
 cd /path/to/target-project
 python3 "$PORTAPY/scripts/run_docker.py" \
-    --image shelldsl-py-3-14 \
+    --image portapy-py-3-14 \
     --read-only \
     --network-none \
     -- python -m unittest discover
@@ -154,8 +153,8 @@ python3 "$PORTAPY/scripts/run_docker.py" \
 The current Dockerfile-derived image names are deterministic, for example:
 
 ```text
-Dockerfile.py_2_7  -> shelldsl-py-2-7
-Dockerfile.py_3_14 -> shelldsl-py-3-14
+Dockerfile.py_2_7  -> portapy-py-2-7
+Dockerfile.py_3_14 -> portapy-py-3-14
 ```
 
 Use `--rebuild` when a Dockerfile or its base image should be rebuilt:

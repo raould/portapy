@@ -73,7 +73,7 @@ def prntlog(level, message):
         label = "WARN"
     else:
         label = "ERROR"
-    sys.stderr.write("[shelldsl:%s] %s\n" % (label, message))
+    sys.stderr.write("[portapy:%s] %s\n" % (label, message))
     sys.stderr.flush()
 
 

@@ -7,7 +7,7 @@
 #   docker build \
 #     --build-arg BASE_IMAGE=python:2.7-slim@sha256:<verified-digest> \
 #     --file PortaPy/tests/docker/Dockerfile.py27 \
-#     --tag shelldsl-vm-py27 .
+#     --tag portapy-vm-py27 .
 #
 # For local development, the default tag is convenient but should not be
 # treated as a reproducible release dependency.

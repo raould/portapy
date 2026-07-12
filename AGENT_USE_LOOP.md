@@ -85,7 +85,7 @@ example:
 
 ```text
 python3 "$PORTAPY/scripts/run_docker.py" \
-    --image shelldsl-py-2-7 \
+    --image portapy-py-2-7 \
     --read-only \
     --network-none \
     -- python test_runner.py
