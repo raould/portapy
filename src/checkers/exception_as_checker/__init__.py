@@ -9,7 +9,7 @@ from checkers._support import tokens
 RULE = add_rule(
     Severity.ERROR,
     "exception binding with as",
-    ["vm_sdk.exception_value", "sys.exc_info()"],
+    ["portapy_sdk.exception_value", "sys.exc_info()"],
 )
 
 

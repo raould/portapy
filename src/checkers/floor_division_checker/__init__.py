@@ -8,7 +8,7 @@ from checkers._support import tokens
 RULE = add_rule(
     Severity.ERROR,
     "floor division",
-    ["vm_sdk.int_div", "int division"],
+    ["portapy_sdk.int_div", "int division"],
 )
 
 

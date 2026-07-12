@@ -5,7 +5,7 @@ from checkers._framework import Diagnostic, Severity, add_rule, make_diagnostic
 from checkers._support import parse, node_position
 RULE = add_rule(Severity.ERROR, "unsupported module import", ["portable allowlisted modules"])
 ALLOWLIST = set((
-    "sys", "os", "string", "time", "math", "vm_sdk",
+    "sys", "os", "string", "time", "math", "portapy_sdk",
     "shlex", "shutil", "subprocess", "csv", "io", "json",
     "portapy", "core", "errors", "result",
 ))

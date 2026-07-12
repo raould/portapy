@@ -1,4 +1,4 @@
-from vm_sdk import prnt
+from portapy_sdk import prnt
 
 
 def write_message(value):
