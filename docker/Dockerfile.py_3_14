@@ -1,22 +1,6 @@
-# Python 3.14 behavioral-test image for the generic PortaPy.
-#
-# Pin BASE_IMAGE to a verified digest for release or CI use, for example:
-#
-#   docker build \
-#     --build-arg BASE_IMAGE=python:3.14-slim@sha256:<verified-digest> \
-#     --file docker/Dockerfile.py_3_14 \
-#     --tag portapy-py-3-14 .
-#
-# The default tag is convenient for local development but is not a
-# reproducible release dependency until it is pinned.
 ARG BASE_IMAGE=python:3.14-slim
 FROM ${BASE_IMAGE}
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 WORKDIR /workspace
-
-# Copy the PortaPy sources and compatibility tests into the image. The test runner
-# should remain usable by both this Python 3.14 image and the Python 2 image.
-COPY . /workspace/portapy
-
-CMD ["python", "portapy/test_runner.py"]

@@ -4,6 +4,8 @@ Created in heavy conjunction with Claude & Copilot.
 
 PortaPy is a way to enforce python source code that is (theoretically) portable from python 2.0 through current python 3.x. The idea is to enforce a lowest-common-denominator syntax. Additionally, a (currently very) small SDK with some helper functions can be used. (E.g. portapy_sdk.prnt() because of the breaking difference between print expression vs. print statement.)
 
+The SDK also defines type tags (`PpyNativeStr`, `PpyBytes`, `PpyText`, `PpyAsciiBytes`, `PpyBencoded`, ...) that mypy can check through type comments, without breaking Python 2.0. See [TYPES.md](TYPES.md).
+
 Enforcement is done by (1) running static checking tools, (2) running the target code through various python interpreter versions, care of Docker.
 
 This directory contains the portable-source checkers and the Docker runtime

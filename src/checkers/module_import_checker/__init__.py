@@ -1,4 +1,5 @@
 """Reject imports outside the small portable module allowlist."""
+import sys
 import ast
 from typing import List
 from checkers._framework import Diagnostic, Severity, add_rule, make_diagnostic
@@ -11,9 +12,21 @@ OUT_OF_RANGE_RULE = add_rule(
     ["use it before #portapy_pragma ALLOW_MODULE_END <module>"],
 )
 ALLOWLIST = set((
-    "sys", "os", "string", "time", "math", "portapy_sdk",
-    "shlex", "shutil", "subprocess", "csv", "io", "json",
-    "portapy", "core", "errors", "result",
+    "core",
+    "errors",
+    "importlib",
+    "math",
+    "os",
+    "portapy",
+    "portapy_sdk",
+    "result",
+    "shlex",
+    "shutil",
+    "string",
+    "sys",
+    "stat",
+    "time",
+    "traceback",
 ))
 def check_source(source: str, filename: str = "<string>") -> List[Diagnostic]:
     tree = parse(source)
@@ -29,9 +42,9 @@ def check_source(source: str, filename: str = "<string>") -> List[Diagnostic]:
             names = [node.module.split(".")[0]]
         if names:
             line, column = node_position(node)
-            if any(name not in ALLOWLIST and not pragmas.allows(name, line)
-                   for name in names):
-                found.append(make_diagnostic(filename, line, column, RULE))
+            bad = list(filter(lambda n: n not in ALLOWLIST and not pragmas.allows(n, line), names))
+            for b in bad:
+                found.append(make_diagnostic(filename, line, column, RULE, "(module: '%s')" % b))
         elif isinstance(node, ast.Name):
             # Uses of a pragma-allowed module's name outside its range.
             if (node.id in pragmas.ranges and node.id not in ALLOWLIST
