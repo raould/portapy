@@ -423,6 +423,44 @@ project.
 
 The allowlist should be configurable so separate domains can add approved adapters without changing the checker implementation.
 
+## ALLOW_MODULE pragmas
+
+A source file may allow one extra module for a range of its own lines:
+
+```python
+#portapy_pragma ALLOW_MODULE
+import hashlib
+new = hashlib.md5
+#portapy_pragma ALLOW_MODULE_END hashlib
+```
+
+- A pragma must be a comment alone on its line; indentation is allowed, so it
+  works inside `try:` / `except ImportError:` fallbacks.
+- `ALLOW_MODULE` must be followed on the very next physical line by exactly
+  `import <module>`: one module, no dots, no `as` alias, no trailing comment,
+  no other import form. Anything else is reported (`ALLOW_MODULE pragma not
+  followed by a plain 'import <module>' line`).
+- The module is allowed from that import line until
+  `#portapy_pragma ALLOW_MODULE_END <module>`, or to the end of the file when
+  there is no END. Other files are unaffected. A module can be allowed again
+  later with another `ALLOW_MODULE` + import.
+- Outside every range, imports of the module are reported (`unsupported
+  module import`) and so is any use of its name (`pragma-allowed module used
+  outside its ALLOW_MODULE range`). The usage check is by name: values taken
+  from the module inside the range (`new = hashlib.md5`) may be used anywhere,
+  which is the intended way to confine the module to a small adapter.
+- An END with no open range for that module is reported (`ALLOW_MODULE_END
+  without a matching open ALLOW_MODULE`).
+- Diagnostics from all checkers on the pragma's import line are suppressed.
+- Any comment starting with `#portapy_pragma` that is not one of the two
+  pragmas is reported (`unknown portapy pragma`), and a pragma after code on
+  the same line is reported (`portapy pragma must be alone on its line`), so a
+  typo never silently disables checking.
+
+A pragma states that the author has verified the module's behaviour on every
+target interpreter. The static checker cannot verify that; the Docker runtime
+matrix must.
+
 ## Rule severity
 
 The framework supports three severity values:

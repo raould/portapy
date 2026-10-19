@@ -16,6 +16,7 @@ if SRC_DIR not in sys.path:
 
 import checkers
 from checkers._framework import format_diagnostic
+from checkers import _pragma
 from checkers._support import (
     clear_inspection_context,
     prepare_inspection_context,
@@ -65,9 +66,11 @@ def check_file(filename: str) -> List[Diagnostic]:
             else:
                 checker_diagnostics = checker(source, filename)
             diagnostics.extend(checker_diagnostics)
+        skip_lines = _pragma.scan(source).skip_lines
     finally:
         clear_inspection_context()
-    return diagnostics
+    # A valid ALLOW_MODULE pragma exempts the import line after it from all checkers.
+    return [d for d in diagnostics if d["line"] not in skip_lines]
 
 
 def main(arguments: List[str]) -> int:
