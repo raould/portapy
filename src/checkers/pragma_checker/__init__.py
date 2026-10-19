@@ -10,7 +10,7 @@ UNKNOWN_RULE = add_rule(
 )
 NO_IMPORT_RULE = add_rule(
     Severity.ERROR,
-    "ALLOW_MODULE pragma not followed by a plain 'import <module>' line",
+    "ALLOW_MODULE pragma must be followed by a plain 'import <module>' line",
     ["put 'import <module>' on the very next line"],
 )
 NOT_ALONE_RULE = add_rule(
