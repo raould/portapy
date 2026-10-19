@@ -11,9 +11,18 @@ OUT_OF_RANGE_RULE = add_rule(
     ["use it before #portapy_pragma ALLOW_MODULE_END <module>"],
 )
 ALLOWLIST = set((
-    "sys", "os", "string", "time", "math", "portapy_sdk",
-    "shlex", "shutil", "subprocess", "csv", "io", "json",
-    "portapy", "core", "errors", "result",
+    "portapy",
+    "shlex",
+    "sys",
+    "core",
+    "errors",
+    "math",
+    "os",
+    "portapy_sdk",
+    "result",
+    "shutil",
+    "string",
+    "time",
 ))
 def check_source(source: str, filename: str = "<string>") -> List[Diagnostic]:
     tree = parse(source)
