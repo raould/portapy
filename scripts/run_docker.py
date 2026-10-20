@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Run a target command in a Dockerized Python interpreter.
 
-This is host-side orchestration. The mounted project supplies the source and
-its tests; the image supplies the interpreter and operating system.
+This is host-side orchestration. The image supplies only the interpreter.
+PortaPy is mounted read-only at PORTAPY_MOUNT, and the system under test is
+mounted at --workdir. Nothing from either is baked into the image, so images
+never go stale when portapy or the SUT changes.
 """
 
 import argparse
@@ -11,6 +13,19 @@ import os
 import shutil
 import subprocess
 import sys
+
+
+PORTAPY_MOUNT = "/opt/portapy"
+
+# Runs inside the container before the SUT command. Fails loudly if the
+# portapy mount is missing, then prepends portapy's source to PYTHONPATH
+# while keeping any value the image already set.
+ENTRYPOINT_SCRIPT = (
+    'test -d "$PORTAPY_HOME/src/portapy_sdk" || '
+    '{ echo "portapy not mounted at $PORTAPY_HOME" >&2; exit 3; }; '
+    'export PYTHONPATH="$PORTAPY_HOME/src${PYTHONPATH:+:$PYTHONPATH}"; '
+    'exec "$@"'
+)
 
 
 def build_parser():
@@ -31,17 +46,17 @@ def build_parser():
     parser.add_argument(
         "--project",
         default=None,
-        help="Project directory to mount; defaults to the current directory",
+        help="System-under-test directory to mount; defaults to the current directory",
     )
     parser.add_argument(
         "--workdir",
         default="/workspace",
-        help="Container working directory",
+        help="Container path where the system under test is mounted",
     )
     parser.add_argument(
         "--read-only",
         action="store_true",
-        help="Mount the project read-only",
+        help="Mount the system under test read-only",
     )
     parser.add_argument(
         "--network-none",
@@ -77,6 +92,10 @@ def image_name(dockerfile):
     return "portapy-%s" % name.replace("Dockerfile.", "").replace("_", "-")
 
 
+def build_context(dockerfile):
+    return os.path.dirname(os.path.abspath(dockerfile))
+
+
 def docker_arguments(options):
     project = options.project or os.getcwd()
     project = os.path.abspath(project)
@@ -90,16 +109,25 @@ def docker_arguments(options):
 
     if not options.image:
         raise ValueError("--image is required unless --all is used")
+
+    sut_mount = project + ":" + options.workdir
+    if options.read_only:
+        sut_mount = sut_mount + ":ro"
+    portapy_mount = repository_root() + ":" + PORTAPY_MOUNT + ":ro"
+
     command = ["docker", "run", "--rm"]
     if options.name:
         command.extend(["--name", options.name])
     if options.network_none:
         command.extend(["--network", "none"])
-    mount = project + ":" + options.workdir
-    if options.read_only:
-        mount = mount + ":ro"
-    command.extend(["--volume", mount, "--workdir", options.workdir])
+    command.extend([
+        "--volume", portapy_mount,
+        "--volume", sut_mount,
+        "--workdir", options.workdir,
+        "--env", "PORTAPY_HOME=" + PORTAPY_MOUNT,
+    ])
     command.append(options.image)
+    command.extend(["sh", "-c", ENTRYPOINT_SCRIPT, "portapy-entry"])
     command.extend(container_command)
     return command
 
@@ -107,7 +135,7 @@ def docker_arguments(options):
 def build_arguments(dockerfile, tag):
     return [
         "docker", "build", "--file", dockerfile,
-        "--tag", tag, repository_root(),
+        "--tag", tag, build_context(dockerfile),
     ]
 
 

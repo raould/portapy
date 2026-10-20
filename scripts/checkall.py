@@ -5,6 +5,7 @@ import importlib
 import os
 import pkgutil
 import sys
+import traceback
 from typing import Callable, Dict, List
 
 
@@ -49,6 +50,10 @@ def check_file(filename: str) -> List[Diagnostic]:
     handle = open(filename, "r")
     try:
         source = handle.read()
+    except Exception as error:
+        traceback.print_exc()
+        sys.stderr.write("%s\n" % filename)
+        raise error
     finally:
         handle.close()
 
