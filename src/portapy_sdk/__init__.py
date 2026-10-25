@@ -469,6 +469,7 @@ except NameError:
     _LONG = int
 
 _PPY_INT_TYPE = type(1)
+_PPY_LONG_TYPE = type(_LONG(0))
 _PPY_DICT_TYPE = type({})
 _PPY_LIST_TYPE = type([])
 _PPY_TUPLE_TYPE = type(())
@@ -555,7 +556,7 @@ _PPY_DIGIT_BYTES = a2b('0123456789')
 
 def _is_integer(v):
     t = type(v)
-    if t == _PPY_INT_TYPE or t == _LONG:
+    if t == _PPY_INT_TYPE or t == _PPY_LONG_TYPE:
         return 1
     return isinstance(v, _PPY_INT_TYPE)   # Python 3 bool
 
