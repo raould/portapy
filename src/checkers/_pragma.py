@@ -10,12 +10,16 @@ Two pragmas are supported::
 Rules:
 
 - A pragma is a comment that stands alone on its line (indentation allowed).
-- ``ALLOW_MODULE`` must be followed on the very next physical line by a plain
-  ``import <module>`` statement: one module, no dots, no ``as`` alias, no
-  other import form.
-- The module is allowed from that import line until a matching
-  ``ALLOW_MODULE_END <module>``, or to the end of the file if there is none.
-  Imports and uses of the module's name outside every such range are reported.
+- ``ALLOW_MODULE`` must be followed on the very next physical line by
+  ``import <module>`` or ``import <module> as <name>``: one module, no dots,
+  no other import form.
+- The import binds a name: ``<module>`` for a plain import, ``<name>`` for an
+  aliased one. That bound name is allowed from the import line until a
+  matching ``ALLOW_MODULE_END <bound name>``, or to the end of the file if
+  there is none. Uses of the bound name outside every such range are
+  reported, and so are imports that bind it outside them.
+- With an alias, ``<module>`` itself is allowed only in that import
+  statement: ``import mymodule as mm`` allows ``mm``, never ``mymodule``.
 - Diagnostics from any checker on the pragma's import line are suppressed.
 
 Anything that starts with ``#portapy_pragma`` but does not follow these rules
@@ -33,7 +37,10 @@ _ALLOW_MODULE_RE = re.compile(r"^#portapy_pragma ALLOW_MODULE\s*$")
 _ALLOW_MODULE_END_RE = re.compile(
     r"^#portapy_pragma ALLOW_MODULE_END ([A-Za-z_][A-Za-z0-9_]*)\s*$"
 )
-_IMPORT_LINE_RE = re.compile(r"^[ \t]*import[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]*$")
+_IMPORT_LINE_RE = re.compile(
+    r"^[ \t]*import[ \t]+[A-Za-z_][A-Za-z0-9_]*"
+    r"([ \t]+as[ \t]+[A-Za-z_][A-Za-z0-9_]*)?[ \t]*$"
+)
 
 UNKNOWN = "unknown"
 NO_IMPORT = "no_import"
@@ -45,8 +52,10 @@ class PragmaScan:
     """Result of scanning one source file for pragmas."""
 
     def __init__(self):
-        # module -> list of [first_line, end_line]; end_line is the line of
-        # the matching ALLOW_MODULE_END, or None when open to end of file.
+        # bound name -> list of [first_line, end_line, module]; end_line is
+        # the line of the matching ALLOW_MODULE_END, or None when open to the
+        # end of file. The bound name is the module for a plain import and
+        # the alias for 'import module as alias'.
         self.ranges = {}
         self.skip_lines = set()
         # (line, column, problem) for each malformed pragma.
@@ -56,12 +65,21 @@ class PragmaScan:
     def allowed_modules(self):
         return set(self.ranges)
 
-    def allows(self, module, line):
-        """True if `module` may be imported or used on `line`."""
-        for first, end in self.ranges.get(module, ()):
-            if line >= first and (end is None or line < end):
-                return True
-        return False
+    def allows(self, name, line):
+        """True if the bound name `name` may be used on `line`."""
+        return self._covering(name, line) is not None
+
+    def allows_import(self, module, bound, line):
+        """True if an import of `module` that binds `bound` is allowed on `line`:
+        `line` is inside a range for `bound` that was opened for `module`."""
+        span = self._covering(bound, line)
+        return span is not None and span[2] == module
+
+    def _covering(self, name, line):
+        for span in self.ranges.get(name, ()):
+            if line >= span[0] and (span[1] is None or line < span[1]):
+                return span
+        return None
 
 
 def scan(source):
@@ -93,15 +111,25 @@ def scan(source):
         if not _ALLOW_MODULE_RE.match(text):
             result.problems.append((line, column, UNKNOWN))
             continue
-        module = _plain_import_on_line(lines, imports_by_line, line + 1)
-        if module is None:
+        found = _import_on_line(lines, imports_by_line, line + 1)
+        if found is None:
             result.problems.append((line, column, NO_IMPORT))
             continue
+        module, bound = found
         result.skip_lines.add(line + 1)
-        open_ranges = [r for r in result.ranges.get(module, []) if r[1] is None]
-        if not open_ranges:
-            result.ranges.setdefault(module, []).append([line + 1, None])
+        _open(result, bound, module, line + 1)
     return result
+
+
+def _open(result, bound, module, line):
+    """Open a range for `bound`, unless one is already open for the same module.
+    An open range for the same name but another module ends here."""
+    for span in result.ranges.get(bound, []):
+        if span[1] is None:
+            if span[2] == module:
+                return
+            span[1] = line
+    result.ranges.setdefault(bound, []).append([line, None, module])
 
 
 def _close(result, module, line):
@@ -113,8 +141,9 @@ def _close(result, module, line):
     return False
 
 
-def _plain_import_on_line(lines, imports_by_line, line):
-    """Return the module name if `line` is exactly `import <module>`."""
+def _import_on_line(lines, imports_by_line, line):
+    """Return (module, bound_name) if `line` is exactly `import <module>` or
+    `import <module> as <name>`, else None."""
     if line > len(lines):
         return None
     if not _IMPORT_LINE_RE.match(lines[line - 1]):
@@ -123,8 +152,6 @@ def _plain_import_on_line(lines, imports_by_line, line):
     if len(nodes) != 1 or not isinstance(nodes[0], ast.Import):
         return None
     aliases = nodes[0].names
-    if len(aliases) != 1 or aliases[0].asname is not None:
+    if len(aliases) != 1 or "." in aliases[0].name:
         return None
-    if "." in aliases[0].name:
-        return None
-    return aliases[0].name
+    return (aliases[0].name, aliases[0].asname or aliases[0].name)
