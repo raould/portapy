@@ -570,24 +570,24 @@ def bunkey(bkey):
 def bd_add(d, k, v):
     d[bkey(k)] = v
 def bd_get(d, k):
-    return d[bkey[k]] 
+    return d[bkey(k)]
 def dict_to_bd(d):
     bd = {}
     for k in d.keys():
         v = d[k]
-        if isinstance(v, dict):
+        if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
             v2 = dict_to_bd(v)
             v = v2
         bd[a2b(k)] = v
     return bd
 def bd_to_dict(bd):
     d = {}
-    for k in d.keys():
+    for k in bd.keys():
         v = bd[k]
-        if isinstance(v, dict):
+        if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
             v2 = bd_to_dict(v)
             v = v2
-        d[b2a(k)] = bd[k]
+        d[b2a(k)] = v
     return d
 
 def bencode(value):
