@@ -184,7 +184,7 @@ def name_to_utf16le(name):
 # Strategy selection.
 #
 
-def choose_naming():
+def choose_naming_T():
     """
     This is currently mainly just for pybak.
     Return (name_kind, argv_to_native, name_to_bytes) for this interpreter.
@@ -207,7 +207,13 @@ def choose_naming():
     if win32 and is_utf8_name(enc):
         return (_PPY_WIN_UTF8, argv_to_bytes, name_identity)   # PEP 529, 3.6+
     return (_PPY_NATIVE_BYTES, argv_to_bytes, name_identity)
-
+def choose_naming():
+    t = choose_naming_T()
+    return {
+        'name_kind': t[0],
+        'argv_to_native': t[1],
+        'name_to_bytes': t[2]
+    }
 
 def is_lossy(name_kind):
     return name_kind == _PPY_WIN_CODEPAGE
