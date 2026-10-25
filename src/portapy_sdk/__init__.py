@@ -9,6 +9,7 @@ import binascii
 
 #----------------------------------------
 
+# for python 2.0+
 def sorted_list(lst, get_sort_key):
     # 1. Decorate: build tuples of (sort_key, unique_index, original_item)
     decorated = []
@@ -24,20 +25,6 @@ def sorted_list(lst, get_sort_key):
     for sort_key, index, item in decorated:
         result.append(item)
     return result
-
-#----------------------------------------
-# support MD5 file hashing.
-try:
-    #portapy_pragma ALLOW_MODULE
-    import hashlib
-    # tood: would want usedforsecurity=False (Python 3.9+) on FIPS systems
-    hasher_new = hashlib.md5
-    #portapy_pragma ALLOW_MODULE_END hashlib
-except ImportError:
-    #portapy_pragma ALLOW_MODULE
-    import md5
-    hasher_new = md5.new
-    #portapy_pragma ALLOW_MODULE_END md5
 
 #----------------------------------------
 # Filename strategy.
@@ -450,23 +437,6 @@ def current_exception():
 
 # ---------------------------------------------------------------------------
 
-def md5_and_length(path, chunk_size=8192):
-    hasher = hasher_new()
-    count = 0
-    f = open(path, 'rb')
-    try:
-        while 1:
-            chunk = f.read(chunk_size)
-            if not chunk:
-                break
-            hasher.update(chunk)
-            count = count + len(chunk)
-    finally:
-        f.close()
-    return (hasher.digest(), count)
-
-# ---------------------------------------------------------------------------
-
 """Plain bencode, both directions, portable from Python 2.0 to 3.x.
 
 Standard BitTorrent bencode: any bencode library can read and write it.
@@ -591,7 +561,7 @@ def _is_integer(v):
 
 
 # ---------------------------------------------------------------------------
-# Encoding
+# Encoding (sucks!!!!!!!!!!!!!!!)
 
 def bkey(key):
     return a2b(key)
@@ -599,6 +569,26 @@ def bunkey(bkey):
     return b2a(bkey)
 def bd_add(d, k, v):
     d[bkey(k)] = v
+def bd_get(d, k):
+    return d[bkey[k]] 
+def dict_to_bd(d):
+    bd = {}
+    for k in d.keys():
+        v = d[k]
+        if isinstance(v, dict):
+            v2 = dict_to_bd(v)
+            v = v2
+        bd[a2b(k)] = v
+    return bd
+def bd_to_dict(bd):
+    d = {}
+    for k in d.keys():
+        v = bd[k]
+        if isinstance(v, dict):
+            v2 = bd_to_dict(v)
+            v = v2
+        d[b2a(k)] = bd[k]
+    return d
 
 def bencode(value):
     parts = []
@@ -723,28 +713,3 @@ def _decode_bytes(data, pos):
     if end > len(data):
         raise ValueError("string runs past end of data")
     return (data[start:end], end)
-
-#----------------------------------------
-
-#portapy_pragma ALLOW_MODULE
-import stat
-def bmeta_stat(st):
-    """os.stat/lstat result -> dict, portable from Python 2.0 to 3.x."""
-    fields = {
-        a2b('mode'):  st[stat.ST_MODE],
-        a2b('ino'):   st[stat.ST_INO],
-        a2b('dev'):   st[stat.ST_DEV],
-        a2b('nlink'): st[stat.ST_NLINK],
-        a2b('size'):  st[stat.ST_SIZE],
-        a2b('mtime'): st[stat.ST_MTIME],      # integer seconds on every version
-        a2b('ctime'): st[stat.ST_CTIME],
-    }
-    mtime_ns = getattr(st, 'st_mtime_ns', None)       # 3.3+
-    if mtime_ns is not None:
-        fields[a2b('mtime_ns')] = mtime_ns
-    for name in ('st_blocks', 'st_birthtime', 'st_file_attributes'):
-        value = getattr(st, name, None)
-        if value is not None:
-            fields[a2b(name[3:])] = value
-    return fields
-#portapy_pragma ALLOW_MODULE_END stat
