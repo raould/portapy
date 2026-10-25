@@ -1,4 +1,5 @@
 """Reject imports outside the small portable module allowlist."""
+import sys
 import ast
 from typing import List
 from checkers._framework import Diagnostic, Severity, add_rule, make_diagnostic
@@ -41,9 +42,9 @@ def check_source(source: str, filename: str = "<string>") -> List[Diagnostic]:
             names = [node.module.split(".")[0]]
         if names:
             line, column = node_position(node)
-            if any(name not in ALLOWLIST and not pragmas.allows(name, line)
-                   for name in names):
-                found.append(make_diagnostic(filename, line, column, RULE))
+            bad = list(filter(lambda n: n not in ALLOWLIST and not pragmas.allows(n, line), names))
+            for b in bad:
+                found.append(make_diagnostic(filename, line, column, RULE, "(module: '%s')" % b))
         elif isinstance(node, ast.Name):
             # Uses of a pragma-allowed module's name outside its range.
             if (node.id in pragmas.ranges and node.id not in ALLOWLIST

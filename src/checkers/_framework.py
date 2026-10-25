@@ -50,6 +50,7 @@ def make_diagnostic(
     line: int,
     column: int,
     rule: Rule,
+    annotation: str | None = None,
 ) -> Diagnostic:
     """Create the common diagnostic representation."""
     return {
@@ -59,18 +60,20 @@ def make_diagnostic(
         "line": line,
         "column": column,
         "message": rule[2],
-        "alternatives": rule[3]
+        "alternatives": rule[3],
+        "annotation": annotation
     }
 
 
 def format_diagnostic(diagnostic: Diagnostic) -> str:
     """Format a diagnostic for command-line output."""
-    return "%s:%s:%s: [%s] [%s] disallowed: '%s'. alternatives: %s" % (
+    return "%s:%s:%s: [%s] [%s] disallowed: %s '%s'. alternatives: %s" % (
         diagnostic["filename"],
         diagnostic["line"],
         diagnostic["column"],
         diagnostic["rule_id"],
         diagnostic["severity"].value,
+        diagnostic["annotation"] or '',
         diagnostic["message"],
         ",".join(diagnostic["alternatives"]),
     )
