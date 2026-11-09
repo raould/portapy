@@ -59,7 +59,7 @@ PPY_DEBUG = 20
 PPY_WARN = 30
 PPY_ERROR = 40
 PPY_PRNTLOG_LEVEL = None
-PPY_DEFAULT_PRNTLOG_LEVEL = PPY_VERBOSE
+PPY_DEFAULT_PRNTLOG_LEVEL = PPY_WARN
 
 
 def _level_from_name(value):
@@ -398,52 +398,6 @@ def _is_integer(v):
         return 1
     return 0
 
-
-# ---------------------------------------------------------------------------
-# Encoding (sucks!!!!!!!!!!!!!!!)
-
-# def bkey(key):
-#     # type: (PpyAsciiStr) -> PpyBKey
-#     return PpyBKey(a2b(key))
-
-
-# def bunkey(bkey):
-#     # type: (PpyBytes) -> PpyAsciiStr
-#     return b2a(bkey)
-
-
-# def bd_add(d, k, v):
-#     # type: (PpyBDict, PpyAsciiStr, PpyBValue) -> None
-#     d[bkey(k)] = v
-
-
-# def bd_get(d, k):
-#     # type: (PpyBDict, PpyAsciiStr) -> PpyBValue
-#     return d[bkey(k)]
-
-
-# def dict_to_bd(d):
-#     # type: (PpyDict[str, PpyAny]) -> PpyBDict
-#     bd = {}  # type: PpyBDict
-#     for k in d.keys():
-#         v = d[k]
-#         if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
-#             v2 = dict_to_bd(v)
-#             v = v2
-#         bd[a2b(k)] = v
-#     return bd
-
-
-# def bd_to_dict(bd):
-#     # type: (PpyBDict) -> PpyDict[str, PpyAny]
-#     d = {}  # type: PpyDict[str, PpyAny]
-#     for k in bd.keys():
-#         v = bd[k]
-#         if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
-#             d[b2a(k)] = bd_to_dict(bv_dict(v))
-#         else:
-#             d[b2a(k)] = v
-#     return d
 
 # ---------------------------------------------------------------------------
 # Checked readers for decoded bencode values (untrusted data from the wire).
