@@ -62,7 +62,7 @@ value. At runtime it checks the value and returns it unchanged.
 
 | tag | made by | constructor checks |
 |---|---|---|
-| `PpyAsciiBytes` | `a2b()`, `b_ascii()` | bytes, ASCII only |
+| `PpyAsciiBytes` | `a2b()` | bytes, ASCII only |
 | `PpyBKey` | `bkey()` | bytes, ASCII only |
 | `PpyBencoded` | `bencode()` | bytes (`bdecode()` checks the structure) |
 

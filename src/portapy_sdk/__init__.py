@@ -7,13 +7,15 @@ which mypy reads and Python never runs. See TYPES.md.
 
 import os
 import sys
-#portapy_pragma ALLOW_MODULE
+# portapy_pragma ALLOW_MODULE
 import tempfile
 import binascii
 
-#----------------------------------------
+# ----------------------------------------
 
 # for python 2.0+
+
+
 def sorted_list(lst, get_sort_key):
     # type: (PpyList[_GT], PpyCallable[[_GT], PpyAny]) -> PpyList[_GT]
     # 1. Decorate: build tuples of (sort_key, unique_index, original_item)
@@ -35,14 +37,17 @@ def sorted_list(lst, get_sort_key):
 # Other OS functions that exotic ports may lack.
 #
 
+
 def get_lstat():
     # type: () -> PpyCallable[[PpyAny], os.stat_result]
     """os.lstat where it exists (Python 2 on Windows has none), else os.stat."""
-    f = getattr(os, 'lstat', os.stat)  # type: PpyCallable[[PpyAny], os.stat_result]
+    f = getattr(
+        os, 'lstat', os.stat)  # type: PpyCallable[[PpyAny], os.stat_result]
     return f
 
 # ----------------------------------------
 # print and logging.
+
 
 try:
     basestring  # type: ignore[used-before-def]
@@ -153,6 +158,7 @@ def current_exception():
 
 # ---------------------------------------------------------------------------
 
+
 """Plain bencode, both directions, portable from Python 2.0 to 3.x.
 
 Standard BitTorrent bencode: any bencode library can read and write it.
@@ -175,7 +181,8 @@ keys), so the same value always gives the same bytes on every interpreter.
 """
 
 try:
-    PPY_NATIVE_STR_IS_BYTES = int(bytes is str)  # type: ignore[comparison-overlap]  # Python 2: true
+    # type: ignore[comparison-overlap]  # Python 2: true
+    PPY_NATIVE_STR_IS_BYTES = int(bytes is str)
 except NameError:
     PPY_NATIVE_STR_IS_BYTES = 1
 
@@ -184,16 +191,17 @@ try:
 except NameError:
     _LONG = int
 
-PPY_RAW_BYTES_MARKER = 0xCAFEACDC # hopefully rare enough! :-(
 _PPY_INT_TYPE = type(1)
 _PPY_LONG_TYPE = type(_LONG(0))
-_PPY_DICT_TYPE = type({})  # type: typing.Type[typing.Dict[typing.Any, typing.Any]]
+# type: typing.Type[typing.Dict[typing.Any, typing.Any]]
+_PPY_DICT_TYPE = type({})
 _PPY_LIST_TYPE = type([])  # type: typing.Type[typing.List[typing.Any]]
 _PPY_TUPLE_TYPE = type(())
-_PPY_NATIVE_STR = type('')
+_PPY_NATIVE_STR_TYPE = type('')
 
 if PPY_NATIVE_STR_IS_BYTES:
-    _PPY_BYTES_TYPE = _PPY_NATIVE_STR  # type: typing.Type[bytes]  # type: ignore[assignment]  # Python 2: bytes is str
+    # type: typing.Type[bytes]  # type: ignore[assignment]  # Python 2: bytes is str
+    _PPY_BYTES_TYPE = _PPY_NATIVE_STR_TYPE
 else:
     _PPY_BYTES_TYPE = type('x'.encode('ascii'))
 
@@ -232,26 +240,32 @@ def _check_bencoded(b):
     return b
 
 
-MYPY = 0 # hide all this from non-mypy tools.
+MYPY = 0  # hide all this from non-mypy tools.
 if MYPY:
-    #portapy_pragma ALLOW_MODULE
+    # portapy_pragma ALLOW_MODULE
     import typing
 
     # Source tags.
-    PpyNativeStr = str      # type of a plain '...' literal: bytes on Python 2, text on Python 3. mypy sees only Python 3.
+    # type of a plain '...' literal: bytes on Python 2, text on Python 3. mypy sees only Python 3.
+    PpyNativeStr = str
     PpyAsciiStr = str       # a PpyNativeStr holding only ASCII: the input of a2b(), bkey()
     PpyBytes = bytes        # real bytes: str on Python 2, bytes on Python 3
-    PpyText = str           # Python's text type (unicode on Python 2): code points, no encoding, contents not validated
+    # Python's text type (unicode on Python 2): code points, no encoding, contents not validated
+    PpyText = str
 
     # Derived tags.
-    PpyAsciiBytes = typing.NewType('PpyAsciiBytes', bytes)      # output of a2b()
-    PpyBKey = typing.NewType('PpyBKey', PpyAsciiBytes)          # output of bkey(): a bencode dict key
-    PpyBencoded = typing.NewType('PpyBencoded', bytes)          # output of bencode(), the only input to bdecode()
+    PpyAsciiBytes = typing.NewType(
+        'PpyAsciiBytes', bytes)      # output of a2b()
+    # output of bkey(): a bencode dict key
+    PpyBKey = typing.NewType('PpyBKey', PpyAsciiBytes)
+    # output of bencode(), the only input to bdecode()
+    PpyBencoded = typing.NewType('PpyBencoded', bytes)
 
     # Bencode values. Sequence/Mapping are read-only, so covariant: a list of
     # any bytes tag can be encoded without copying. Decoded values are concrete
     # lists/dicts: read them with bv_list/bv_dict and the bd_get_* readers.
-    PpyBValue = typing.Union[bytes, int, typing.Sequence['PpyBValue'], typing.Mapping[bytes, 'PpyBValue']]
+    PpyBValue = typing.Union[bytes, int, typing.Sequence['PpyBValue'],
+                             typing.Mapping[bytes, 'PpyBValue']]
     PpyBList = typing.List[PpyBValue]
     PpyBDict = typing.Dict[bytes, PpyBValue]
 
@@ -272,8 +286,8 @@ if MYPY:
     PpyCallable = typing.Callable[_GP, _GR]
     PpyAny = typing.Any
 else:
-    PpyNativeStr = _PPY_NATIVE_STR
-    PpyAsciiStr = _PPY_NATIVE_STR
+    PpyNativeStr = _PPY_NATIVE_STR_TYPE
+    PpyAsciiStr = _PPY_NATIVE_STR_TYPE
     PpyBytes = _PPY_BYTES_TYPE
     PpyText = _PPY_TEXT_TYPE
     PpyAsciiBytes = _check_ascii_bytes
@@ -284,23 +298,34 @@ else:
 # ---------------------------------------------------------------------------
 # The two str <-> bytes helpers. ASCII only, strict, exact inverses.
 
-def b_ascii(s):
-    # type: (PpyAsciiStr) -> PpyAsciiBytes
-    """Native ASCII str -> bytes, on every version."""
-    return a2b(s)
+
+def require_ascii_bytes(b):
+    if PPY_NATIVE_STR_IS_BYTES:
+        for c in b:
+            # type: ignore[arg-type]  # Python 2: c is a 1-char str
+            if ord(c) > 127:
+                return 0
+        return 1
+    try:
+        return 1
+    except UnicodeError:
+        return 0
+
 
 def ascii_or_none(b):
     # type: (PpyBytes) -> PpyOptional[PpyAsciiStr]
     """Bytes -> native str if pure ASCII, else None."""
     if PPY_NATIVE_STR_IS_BYTES:
         for c in b:
-            if ord(c) > 127:  # type: ignore[arg-type]  # Python 2: c is a 1-char str
+            # type: ignore[arg-type]  # Python 2: c is a 1-char str
+            if ord(c) > 127:
                 return None
         return b  # type: ignore[return-value]  # Python 2: bytes is str
     try:
         return b.decode('ascii')
     except UnicodeError:
         return None
+
 
 def byte_from_int(n):
     # type: (int) -> PpyBytes
@@ -309,19 +334,22 @@ def byte_from_int(n):
         return chr(n)  # type: ignore[return-value]  # Python 2: str is bytes
     return bytes((n,))
 
+
 def is_ascii_str(s):
     # type: (PpyNativeStr) -> None
-    if type(s) != _PPY_NATIVE_STR:
+    if type(s) != _PPY_NATIVE_STR_TYPE:
         raise TypeError("expected native str, got %s" % type(s))
     for c in s:
         if ord(c) > 127:
             return 0
     return 1
 
+
 def require_ascii_str(s):
     # type: (PpyNativeStr) -> None
     if not is_ascii_str(s):
         raise ValueError("not ASCII: %r" % s)
+
 
 def a2b(s):
     # type: (PpyAsciiStr) -> PpyAsciiBytes
@@ -339,7 +367,8 @@ def b2a(b):
     Raises ValueError if b is not ASCII, on every version.
     """
     if PPY_NATIVE_STR_IS_BYTES:
-        require_ascii_str(b)  # type: ignore[arg-type]  # Python 2: bytes is str
+        # type: ignore[arg-type]  # Python 2: bytes is str
+        require_ascii_str(b)
         return b  # type: ignore[return-value]
     if type(b) != _PPY_BYTES_TYPE:
         raise TypeError("expected bytes, got %s" % type(b))
@@ -376,15 +405,23 @@ def _is_integer(v):
 def bkey(key):
     # type: (PpyAsciiStr) -> PpyBKey
     return PpyBKey(a2b(key))
+
+
 def bunkey(bkey):
     # type: (PpyBytes) -> PpyAsciiStr
     return b2a(bkey)
+
+
 def bd_add(d, k, v):
     # type: (PpyBDict, PpyAsciiStr, PpyBValue) -> None
     d[bkey(k)] = v
+
+
 def bd_get(d, k):
     # type: (PpyBDict, PpyAsciiStr) -> PpyBValue
     return d[bkey(k)]
+
+
 def dict_to_bd(d):
     # type: (PpyDict[str, PpyAny]) -> PpyBDict
     bd = {}  # type: PpyBDict
@@ -395,6 +432,8 @@ def dict_to_bd(d):
             v = v2
         bd[a2b(k)] = v
     return bd
+
+
 def bd_to_dict(bd):
     # type: (PpyBDict) -> PpyDict[str, PpyAny]
     d = {}  # type: PpyDict[str, PpyAny]
@@ -411,6 +450,7 @@ def bd_to_dict(bd):
 # Each returns its argument unchanged if it has the expected shape, else
 # raises TypeError, so callers never index into a value of the wrong kind.
 
+
 def bv_bytes(v):
     # type: (PpyBValue) -> PpyBytes
     if type(v) != _PPY_BYTES_TYPE:
@@ -422,7 +462,8 @@ def bv_int(v):
     # type: (PpyBValue) -> int
     if not _is_integer(v):
         raise TypeError("bencode value: expected integer, got %s" % type(v))
-    return v  # type: ignore[return-value]  # _is_integer() checked it (int or long); mypy cannot narrow through it
+    # type: ignore[return-value]  # _is_integer() checked it (int or long); mypy cannot narrow through it
+    return v
 
 
 def bv_list(v):
@@ -460,8 +501,7 @@ def bd_get_dict(d, k):
 
 
 def bencode(value):
-    # type: (PpyBValue) -> PpyBencoded
-    parts = []  # type: PpyList[bytes]
+    parts = []
     _encode_into(value, parts)
     try:
         return PpyBencoded(_PPY_B_EMPTY.join(parts))
@@ -469,16 +509,23 @@ def bencode(value):
         prntlog(PPY_ERROR, 'bencode ERROR %s' % str(parts))
         raise
 
+
 def _encode_into(value, parts):
     # type: (PpyAny, PpyList[bytes]) -> None
     t = type(value)
-    if t == _PPY_BYTES_TYPE:
-        if ascii_or_none(value) is None:
+    # bytes case comes before string in order to
+    # catch the Python 2 case of str-is-bytes
+    # before the Python 3 case of 'native string'.
+    if t == _PPY_BYTES_TYPE:  # bytes, and Python 2 str.
+        if not require_ascii_bytes(value):
             prntlog(PPY_ERROR, '_encode_into ERROR: %s' % value)
-            raise TypeError("only ascii strings allowed; use typle (PPY_RAW_BYTES_MARKER, <bytes>).")
+            raise TypeError('only ascii bytes allowed.')
         # they are ascii bytes (hopefully not just by accident).
         parts.append(a2b('%d:' % len(value)))
         parts.append(value)
+    elif t == _PPY_NATIVE_STR_TYPE:  # Python 3 str.
+        raise TypeError(
+            'strings must be encoded to ascii bytes. (%s %s)' % (t, value))
     elif _is_integer(value):
         parts.append(a2b('i%de' % value))
     elif t == _PPY_LIST_TYPE:
@@ -487,33 +534,32 @@ def _encode_into(value, parts):
             _encode_into(item, parts)
         parts.append(_PPY_B_E)
     elif t == _PPY_TUPLE_TYPE:
-        if value[0] == PPY_RAW_BYTES_MARKER:
-            assert len(value) == 2, len(value)
-            bytes = value[1]
-            parts.append(a2b('%d:' % len(bytes)))
-            parts.append(bytes)
-        else:
-            parts.append(_PPY_B_L)
-            for item in value:
-                _encode_into(item, parts)
-            parts.append(_PPY_B_E)
+        parts.append(_PPY_B_L)
+        for item in value:
+            _encode_into(item, parts)
+        parts.append(_PPY_B_E)
     elif t == _PPY_DICT_TYPE:
         keys = list(value.keys())
         for k in keys:
-            if type(k) != _PPY_BYTES_TYPE and type(k) != _PPY_NATIVE_STR:
+            if type(k) != _PPY_BYTES_TYPE and type(k) != _PPY_NATIVE_STR_TYPE:
                 raise TypeError("bencode dict keys must be bytes; "
                                 "use a2b('%s')" % k)
-        keys.sort()
+        try:
+            keys.sort()
+        except TypeError:
+            prntlog(PPY_ERROR, str(current_exception()))
+            prntlog(PPY_ERROR, keys)
+            raise
         parts.append(_PPY_B_D)
         for k in keys:
             v = value[k]
-            if type(k) == _PPY_NATIVE_STR:
+            if type(k) == _PPY_NATIVE_STR_TYPE:
                 assert is_ascii_str(k)
                 k = a2b(k)
             _encode_into(k, parts)
             _encode_into(v, parts)
         parts.append(_PPY_B_E)
-    elif t == _PPY_NATIVE_STR:
+    elif t == _PPY_NATIVE_STR_TYPE:
         if not is_ascii_str(value):
             # Only reachable on Python 3: text where bytes are required.
             raise TypeError("str value %r: bencode strings are bytes; "
