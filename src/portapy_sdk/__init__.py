@@ -67,13 +67,13 @@ def _level_from_name(value):
     if value is None:
         return None
     value = value.upper()
-    if value == "VERBOSE":
+    if value == 'VERBOSE':
         return PPY_VERBOSE
-    if value == "DEBUG":
+    if value == 'DEBUG':
         return PPY_DEBUG
-    if value == "WARN":
+    if value == 'WARN':
         return PPY_WARN
-    if value == "ERROR":
+    if value == 'ERROR':
         return PPY_ERROR
     return None
 
@@ -88,13 +88,13 @@ def set_prntlog_level(level):
     if isinstance(level, basestring):
         level = _level_from_name(level)
     if level not in (PPY_VERBOSE, PPY_DEBUG, PPY_WARN, PPY_ERROR):
-        raise ValueError("invalid PRNTLOG level")
+        raise ValueError('invalid PRNTLOG level')
     PPY_PRNTLOG_LEVEL = level
 
 
 def _effective_prntlog_level():
     # type: () -> int
-    environment_level = _level_from_name(os.environ.get("PPY_PRNTLOGLEVEL"))
+    environment_level = _level_from_name(os.environ.get('PPY_PRNTLOGLEVEL'))
     if PPY_PRNTLOG_LEVEL is None:
         if environment_level is None:
             return PPY_DEFAULT_PRNTLOG_LEVEL
@@ -116,14 +116,14 @@ def prntlog(level, message):
     if numeric is None or numeric < _effective_prntlog_level():
         return
     if numeric == PPY_VERBOSE:
-        label = "VERBOSE"
+        label = 'VERBOSE'
     elif numeric == PPY_DEBUG:
-        label = "DEBUG"
+        label = 'DEBUG'
     elif numeric == PPY_WARN:
-        label = "WARN"
+        label = 'WARN'
     else:
-        label = "ERROR"
-    sys.stderr.write("[portapy:%s] %s\n" % (label, message))
+        label = 'ERROR'
+    sys.stderr.write('[portapy:%s] %s\n' % (label, message))
     sys.stderr.flush()
 
 
@@ -133,16 +133,16 @@ def prnt(*values):
     index = 0
     while index < len(values):
         if index != 0:
-            sys.stdout.write(" ")
-        sys.stdout.write("%s" % str(values[index]))
+            sys.stdout.write(' ')
+        sys.stdout.write('%s' % str(values[index]))
         index = index + 1
-    sys.stdout.write("\n")
+    sys.stdout.write('\n')
 
 
 def write(value):
     # type: (object) -> None
     """Write one value without adding a newline."""
-    sys.stdout.write("%s" % value)
+    sys.stdout.write('%s' % value)
 
 
 def int_div(left, right):
@@ -226,9 +226,9 @@ def _check_ascii_bytes(b):
     # type: (bytes) -> bytes
     """Mark bytes as ASCII-only bytes. Raises TypeError/ValueError if they are not."""
     if type(b) != _PPY_BYTES_TYPE:
-        raise TypeError("expected bytes, got %s" % type(b))
+        raise TypeError('expected bytes, got %s' % type(b))
     if ascii_or_none(b) is None:
-        raise ValueError("not ASCII")
+        raise ValueError('not ASCII')
     return b
 
 
@@ -236,7 +236,7 @@ def _check_bencoded(b):
     # type: (bytes) -> bytes
     """Mark bytes as bencoded data before bdecode(). Checks the type only; bdecode() checks the structure."""
     if type(b) != _PPY_BYTES_TYPE:
-        raise TypeError("expected bytes, got %s" % type(b))
+        raise TypeError('expected bytes, got %s' % type(b))
     return b
 
 
@@ -338,7 +338,7 @@ def byte_from_int(n):
 def is_ascii_str(s):
     # type: (PpyNativeStr) -> None
     if type(s) != _PPY_NATIVE_STR_TYPE:
-        raise TypeError("expected native str, got %s" % type(s))
+        raise TypeError('expected native str, got %s' % type(s))
     for c in s:
         if ord(c) > 127:
             return 0
@@ -348,7 +348,7 @@ def is_ascii_str(s):
 def require_ascii_str(s):
     # type: (PpyNativeStr) -> None
     if not is_ascii_str(s):
-        raise ValueError("not ASCII: %r" % s)
+        raise ValueError('not ASCII: %r' % s)
 
 
 def a2b(s):
@@ -371,11 +371,11 @@ def b2a(b):
         require_ascii_str(b)
         return b  # type: ignore[return-value]
     if type(b) != _PPY_BYTES_TYPE:
-        raise TypeError("expected bytes, got %s" % type(b))
+        raise TypeError('expected bytes, got %s' % type(b))
     try:
         return b.decode('ascii')
     except UnicodeError:
-        raise ValueError("not ASCII")
+        raise ValueError('not ASCII')
 
 
 _PPY_B_I = a2b('i')
@@ -454,14 +454,14 @@ def bd_to_dict(bd):
 def bv_bytes(v):
     # type: (PpyBValue) -> PpyBytes
     if type(v) != _PPY_BYTES_TYPE:
-        raise TypeError("bencode value: expected bytes, got %s" % type(v))
+        raise TypeError('bencode value: expected bytes, got %s' % type(v))
     return v
 
 
 def bv_int(v):
     # type: (PpyBValue) -> int
     if not _is_integer(v):
-        raise TypeError("bencode value: expected integer, got %s" % type(v))
+        raise TypeError('bencode value: expected integer, got %s' % type(v))
     # type: ignore[return-value]  # _is_integer() checked it (int or long); mypy cannot narrow through it
     return v
 
@@ -469,14 +469,14 @@ def bv_int(v):
 def bv_list(v):
     # type: (PpyBValue) -> PpyBList
     if type(v) != _PPY_LIST_TYPE:
-        raise TypeError("bencode value: expected list, got %s" % type(v))
+        raise TypeError('bencode value: expected list, got %s' % type(v))
     return v
 
 
 def bv_dict(v):
     # type: (PpyBValue) -> PpyBDict
     if type(v) != _PPY_DICT_TYPE:
-        raise TypeError("bencode value: expected dict, got %s" % type(v))
+        raise TypeError('bencode value: expected dict, got %s' % type(v))
     return v
 
 
@@ -542,8 +542,8 @@ def _encode_into(value, parts):
         keys = list(value.keys())
         for k in keys:
             if type(k) != _PPY_BYTES_TYPE and type(k) != _PPY_NATIVE_STR_TYPE:
-                raise TypeError("bencode dict keys must be bytes; "
-                                "use a2b('%s')" % k)
+                raise TypeError(
+                    'bencode dict keys must be bytes; use a2b(\'%s\')' % k)
         try:
             keys.sort()
         except TypeError:
@@ -562,13 +562,13 @@ def _encode_into(value, parts):
     elif t == _PPY_NATIVE_STR_TYPE:
         if not is_ascii_str(value):
             # Only reachable on Python 3: text where bytes are required.
-            raise TypeError("str value %r: bencode strings are bytes; "
-                            "e.g. use a2b() to pre-convert ASCII constants" % value)
+            raise TypeError('str value %r: bencode strings are bytes; '
+                            'e.g. use a2b() to pre-convert ASCII constants' % value)
         # they are ascii bytes (hopefully not just by accident).
         parts.append(a2b('%d:' % len(value)))
         parts.append(value)
     else:
-        raise TypeError("cannot bencode %s" % t)
+        raise TypeError('cannot bencode %s' % t)
 
 
 # ---------------------------------------------------------------------------
@@ -580,7 +580,7 @@ def bdecode(data):
     found = _decode_at(data, 0)
     value = found[0]  # type: PpyBValue
     if found[1] != len(data):
-        raise ValueError("trailing data after bencoded value")
+        raise ValueError('trailing data after bencoded value')
     return value
 
 
@@ -588,7 +588,7 @@ def _decode_at(data, pos):
     # type: (bytes, int) -> PpyTuple[PpyAny, int]
     c = data[pos:pos + 1]
     if c == _PPY_B_EMPTY:
-        raise ValueError("unexpected end of data")
+        raise ValueError('unexpected end of data')
     if c == _PPY_B_I:
         return _decode_int(data, pos + 1)
     if c == _PPY_B_L:
@@ -605,33 +605,35 @@ def _decode_at(data, pos):
         while data[pos:pos + 1] != _PPY_B_E:
             key, pos = _decode_at(data, pos)
             if type(key) != _PPY_BYTES_TYPE:
-                raise ValueError("bencode dict key is not a byte string")
+                raise ValueError('bencode dict key is not a byte string')
+            if not _check_ascii_bytes(key):
+                raise TypeError('becoded dict keys must be ascii bytes')
             if previous is not None and not (previous < key):
-                raise ValueError("bencode dict keys not sorted or repeated")
+                raise ValueError('bencode dict keys not sorted or repeated')
             previous = key
             value, pos = _decode_at(data, pos)
-            result[key] = value
+            result[b2a(key)] = value
         return (result, pos + 1)
     if _PPY_DIGIT_BYTES.find(c) >= 0:
         return _decode_bytes(data, pos)
-    raise ValueError("bad bencode type at offset %d" % pos)
+    raise ValueError('bad bencode type at offset %d' % pos)
 
 
 def _decode_int(data, pos):
     # type: (bytes, int) -> PpyTuple[int, int]
     end = data.find(_PPY_B_E, pos)
     if end < 0:
-        raise ValueError("unterminated integer")
+        raise ValueError('unterminated integer')
     digits = data[pos:end]
     body = digits
     if body[:1] == _PPY_B_MINUS:
         body = body[1:]
         if body == _PPY_B_ZERO:
-            raise ValueError("negative zero in bencode integer")
+            raise ValueError('negative zero in bencode integer')
     if body == _PPY_B_EMPTY:
-        raise ValueError("empty bencode integer")
+        raise ValueError('empty bencode integer')
     if len(body) > 1 and body[:1] == _PPY_B_ZERO:
-        raise ValueError("leading zero in bencode integer")
+        raise ValueError('leading zero in bencode integer')
     _require_digits(body)
     return (_LONG(b2a(digits)), end + 1)
 
@@ -641,7 +643,7 @@ def _require_digits(b):
     i = 0
     while i < len(b):
         if _PPY_DIGIT_BYTES.find(b[i:i + 1]) < 0:
-            raise ValueError("non-digit in bencode number")
+            raise ValueError('non-digit in bencode number')
         i = i + 1
 
 
@@ -649,16 +651,16 @@ def _decode_bytes(data, pos):
     # type: (bytes, int) -> PpyTuple[bytes, int]
     colon = data.find(_PPY_B_COLON, pos)
     if colon < 0:
-        raise ValueError("unterminated string length")
+        raise ValueError('unterminated string length')
     length_digits = data[pos:colon]
     if length_digits == _PPY_B_EMPTY:
-        raise ValueError("empty string length")
+        raise ValueError('empty string length')
     _require_digits(length_digits)
     if len(length_digits) > 1 and length_digits[:1] == _PPY_B_ZERO:
-        raise ValueError("leading zero in string length")
+        raise ValueError('leading zero in string length')
     length = _LONG(b2a(length_digits))
     start = colon + 1
     end = start + length
     if end > len(data):
-        raise ValueError("string runs past end of data")
+        raise ValueError('string runs past end of data')
     return (data[start:end], end)
