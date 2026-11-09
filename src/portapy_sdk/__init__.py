@@ -59,7 +59,7 @@ PPY_DEBUG = 20
 PPY_WARN = 30
 PPY_ERROR = 40
 PPY_PRNTLOG_LEVEL = None
-PPY_DEFAULT_PRNTLOG_LEVEL = PPY_WARN
+PPY_DEFAULT_PRNTLOG_LEVEL = PPY_VERBOSE
 
 
 def _level_from_name(value):
@@ -226,7 +226,7 @@ def _check_ascii_bytes(b):
     # type: (bytes) -> bytes
     """Mark bytes as ASCII-only bytes. Raises TypeError/ValueError if they are not."""
     if type(b) != _PPY_BYTES_TYPE:
-        raise TypeError('expected bytes, got %s' % type(b))
+        raise TypeError('expected bytes, got %s (%s)' % (type(b), b))
     if ascii_or_none(b) is None:
         raise ValueError('not ASCII')
     return b
@@ -402,48 +402,48 @@ def _is_integer(v):
 # ---------------------------------------------------------------------------
 # Encoding (sucks!!!!!!!!!!!!!!!)
 
-def bkey(key):
-    # type: (PpyAsciiStr) -> PpyBKey
-    return PpyBKey(a2b(key))
+# def bkey(key):
+#     # type: (PpyAsciiStr) -> PpyBKey
+#     return PpyBKey(a2b(key))
 
 
-def bunkey(bkey):
-    # type: (PpyBytes) -> PpyAsciiStr
-    return b2a(bkey)
+# def bunkey(bkey):
+#     # type: (PpyBytes) -> PpyAsciiStr
+#     return b2a(bkey)
 
 
-def bd_add(d, k, v):
-    # type: (PpyBDict, PpyAsciiStr, PpyBValue) -> None
-    d[bkey(k)] = v
+# def bd_add(d, k, v):
+#     # type: (PpyBDict, PpyAsciiStr, PpyBValue) -> None
+#     d[bkey(k)] = v
 
 
-def bd_get(d, k):
-    # type: (PpyBDict, PpyAsciiStr) -> PpyBValue
-    return d[bkey(k)]
+# def bd_get(d, k):
+#     # type: (PpyBDict, PpyAsciiStr) -> PpyBValue
+#     return d[bkey(k)]
 
 
-def dict_to_bd(d):
-    # type: (PpyDict[str, PpyAny]) -> PpyBDict
-    bd = {}  # type: PpyBDict
-    for k in d.keys():
-        v = d[k]
-        if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
-            v2 = dict_to_bd(v)
-            v = v2
-        bd[a2b(k)] = v
-    return bd
+# def dict_to_bd(d):
+#     # type: (PpyDict[str, PpyAny]) -> PpyBDict
+#     bd = {}  # type: PpyBDict
+#     for k in d.keys():
+#         v = d[k]
+#         if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
+#             v2 = dict_to_bd(v)
+#             v = v2
+#         bd[a2b(k)] = v
+#     return bd
 
 
-def bd_to_dict(bd):
-    # type: (PpyBDict) -> PpyDict[str, PpyAny]
-    d = {}  # type: PpyDict[str, PpyAny]
-    for k in bd.keys():
-        v = bd[k]
-        if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
-            d[b2a(k)] = bd_to_dict(bv_dict(v))
-        else:
-            d[b2a(k)] = v
-    return d
+# def bd_to_dict(bd):
+#     # type: (PpyBDict) -> PpyDict[str, PpyAny]
+#     d = {}  # type: PpyDict[str, PpyAny]
+#     for k in bd.keys():
+#         v = bd[k]
+#         if type(v) == _PPY_DICT_TYPE:     # no 'dict' name before 2.2
+#             d[b2a(k)] = bd_to_dict(bv_dict(v))
+#         else:
+#             d[b2a(k)] = v
+#     return d
 
 # ---------------------------------------------------------------------------
 # Checked readers for decoded bencode values (untrusted data from the wire).
@@ -513,8 +513,9 @@ def bencode(value):
 def _encode_into(value, parts):
     # type: (PpyAny, PpyList[bytes]) -> None
     t = type(value)
-    # bytes case comes before string in order to
-    # catch the Python 2 case of str-is-bytes
+    # all bytes are to be ascii.
+    # in other words we only allow strings, no bytes.
+    # Python 2 case of str-is-bytes is firat,
     # before the Python 3 case of 'native string'.
     if t == _PPY_BYTES_TYPE:  # bytes, and Python 2 str.
         if not require_ascii_bytes(value):
@@ -524,8 +525,7 @@ def _encode_into(value, parts):
         parts.append(a2b('%d:' % len(value)))
         parts.append(value)
     elif t == _PPY_NATIVE_STR_TYPE:  # Python 3 str.
-        raise TypeError(
-            'strings must be encoded to ascii bytes. (%s %s)' % (t, value))
+        _encode_into(a2b(value), parts)
     elif _is_integer(value):
         parts.append(a2b('i%de' % value))
     elif t == _PPY_LIST_TYPE:
@@ -587,6 +587,7 @@ def bdecode(data):
 def _decode_at(data, pos):
     # type: (bytes, int) -> PpyTuple[PpyAny, int]
     c = data[pos:pos + 1]
+    prntlog(PPY_VERBOSE, '_decode_at: %s %s' % (pos, c))
     if c == _PPY_B_EMPTY:
         raise ValueError('unexpected end of data')
     if c == _PPY_B_I:
@@ -604,18 +605,21 @@ def _decode_at(data, pos):
         previous = None  # type: PpyOptional[bytes]
         while data[pos:pos + 1] != _PPY_B_E:
             key, pos = _decode_at(data, pos)
-            if type(key) != _PPY_BYTES_TYPE:
-                raise ValueError('bencode dict key is not a byte string')
-            if not _check_ascii_bytes(key):
-                raise TypeError('becoded dict keys must be ascii bytes')
+            if type(key) == _PPY_BYTES_TYPE:
+                raise TypeError('failed to decode key bytes')
+            if type(key) != _PPY_NATIVE_STR_TYPE:
+                raise ValueError('dict key did not decode to a native string')
+            require_ascii_str(key)
             if previous is not None and not (previous < key):
                 raise ValueError('bencode dict keys not sorted or repeated')
             previous = key
             value, pos = _decode_at(data, pos)
-            result[b2a(key)] = value
+            result[key] = value
         return (result, pos + 1)
     if _PPY_DIGIT_BYTES.find(c) >= 0:
-        return _decode_bytes(data, pos)
+        decoded = _decode_bytes(data, pos)
+        # we're only allowing ascii strings.
+        return (b2a(decoded[0]), decoded[1])
     raise ValueError('bad bencode type at offset %d' % pos)
 
 
@@ -662,5 +666,7 @@ def _decode_bytes(data, pos):
     start = colon + 1
     end = start + length
     if end > len(data):
-        raise ValueError('string runs past end of data')
-    return (data[start:end], end)
+        raise ValueError('len(data) doesn\'t match expected length')
+    result = (data[start:end], end)
+    prntlog(PPY_VERBOSE, '_decode_bytes: %s %s' % (data[pos:end], result))
+    return result
